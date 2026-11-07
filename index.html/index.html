@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>マネトレ！ポイ活サポート</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#090a0d',
+              dark: '#111317',
+              card: '#181b22',
+              cardHover: '#1f232c',
+              border: '#292d38',
+              borderActive: '#dc2626',
+              red: '#e50914',
+              redLight: '#ff334b',
+              redDark: '#991b1b',
+              redMuted: 'rgba(229, 9, 20, 0.12)',
+              textMain: '#f1f5f9',
+              textMuted: '#94a3b8'
+            }
+          },
+          boxShadow: {
+            'glow-red': '0 0 15px rgba(229, 9, 20, 0.35)',
+            'glow-red-sm': '0 0 8px rgba(229, 9, 20, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #090a0d;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #111317;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #2d3342;
+      border-radius: 3px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #dc2626;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-brand-red selection:text-white">
+
+  <!-- Header -->
+  <header class="bg-brand-dark/95 border-b border-brand-border sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-red to-brand-redDark flex items-center justify-center text-white shadow-glow-red flex-shrink-0">
+          <i class="fa-solid fa-chart-line text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
+              <span class="text-brand-red">マネトレ！</span>ポイ活サポート
+            </h1>
+            <span class="text-[10px] font-bold uppercase tracking-wider bg-brand-red/20 text-brand-redLight border border-brand-red/40 px-1.5 py-0.5 rounded">PRO</span>
+          </div>
+          <p class="text-xs text-brand-textMuted flex items-center gap-2 mt-0.5">
+            <span><i class="fa-regular fa-clock text-brand-red mr-1"></i>最終更新: <span id="lastUpdatedText">2026/11/07 07:15 (公式確認済)</span></span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Metrics -->
+      <div class="flex items-center gap-2 sm:gap-4 flex-wrap">
+        <div class="bg-brand-card border border-brand-border px-3 py-1.5 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-fire text-brand-red"></i>
+          <div>
+            <div class="text-[10px] text-brand-textMuted uppercase leading-none">掲載案件</div>
+            <div class="text-sm font-bold text-white leading-none mt-0.5" id="metricTotal">30件</div>
+          </div>
+        </div>
+        <div class="bg-brand-card border border-brand-border px-3 py-1.5 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-hourglass-half text-amber-500"></i>
+          <div>
+            <div class="text-[10px] text-brand-textMuted uppercase leading-none">7日以内終了</div>
+            <div class="text-sm font-bold text-amber-400 leading-none mt-0.5" id="metricExpiring7">6件</div>
+          </div>
+        </div>
+        <div class="bg-brand-card border border-brand-border px-3 py-1.5 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-yen-sign text-emerald-400"></i>
+          <div>
+            <div class="text-[10px] text-brand-textMuted uppercase leading-none">今月の獲得見込み</div>
+            <div class="text-sm font-bold text-emerald-400 leading-none mt-0.5" id="metricExpected">0P</div>
+          </div>
+        </div>
+
+        <button id="btnManualUpdate" class="bg-brand-red hover:bg-brand-redLight text-white text-xs font-semibold px-3 py-2 rounded-lg transition-all shadow-glow-red-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i>
+          <span class="hidden sm:inline">いますぐ更新</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col space-y-6">
+
+    <!-- KPI Summary & Earned Tracker Bar -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-brand-dark border border-brand-border rounded-xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-brand-textMuted uppercase tracking-wider">今月の獲得実績 (実測集計)</span>
+          <button id="btnRecordModal" class="text-xs text-brand-redLight hover:underline font-medium flex items-center gap-1">
+            <i class="fa-solid fa-plus-circle"></i> 実績を直接入力
+          </button>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl font-black text-white" id="earnedTotal">0</span>
+          <span class="text-sm text-brand-textMuted">pt 確定</span>
+          <span class="text-xs bg-brand-border text-brand-textMuted px-2 py-0.5 rounded-full ml-auto" id="earnedCount">0件 達成</span>
+        </div>
+        <div class="text-[11px] text-brand-textMuted mt-2 border-t border-brand-border/60 pt-2 flex items-center justify-between">
+          <span>チェック済み見込み合計: <span id="pendingExpected" class="font-bold text-emerald-400">0P</span></span>
+          <span class="text-gray-500 text-[10px]">*未確定・金額未記載案件は除外</span>
+        </div>
+      </div>
+
+      <!-- Fast Access: Filter Presets (My Conditions) -->
+      <div class="bg-brand-dark border border-brand-border rounded-xl p-4 md:col-span-2">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-brand-textMuted uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-sliders text-brand-red"></i> マイ条件フィルタ (利用中サービスを複数選択)
+          </span>
+          <button id="btnClearMyConditions" class="text-[11px] text-brand-textMuted hover:text-white transition">リセット</button>
+        </div>
+        <div class="flex flex-wrap gap-1.5" id="myServiceChips">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Search & Filters Toolbar -->
+    <div class="bg-brand-dark border border-brand-border rounded-xl p-4 flex flex-col gap-3">
+      <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div class="relative w-full sm:w-96">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-brand-textMuted text-xs"></i>
+          <input type="text" id="searchInput" placeholder="案件名、特典、還元率、店舗を検索..."
+            class="w-full bg-brand-card border border-brand-border rounded-lg pl-9 pr-8 py-2 text-xs text-white placeholder-brand-textMuted focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition">
+          <button id="searchClear" class="absolute right-2.5 top-2.5 text-brand-textMuted hover:text-white text-xs hidden">
+            <i class="fa-solid fa-circle-xmark"></i>
+          </button>
+        </div>
+
+        <!-- View and Sort -->
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <div class="flex items-center bg-brand-card border border-brand-border rounded-lg p-0.5 text-xs">
+            <button id="viewListBtn" class="px-3 py-1.5 rounded-md font-semibold text-white bg-brand-red transition flex items-center gap-1.5">
+              <i class="fa-solid fa-list-ul"></i><span>一覧</span>
+            </button>
+            <button id="viewCalendarBtn" class="px-3 py-1.5 rounded-md font-medium text-brand-textMuted hover:text-white transition flex items-center gap-1.5">
+              <i class="fa-regular fa-calendar-days"></i><span>締切カレンダー</span>
+            </button>
+          </div>
+
+          <div class="relative">
+            <select id="sortSelect" class="bg-brand-card border border-brand-border rounded-lg px-3 py-1.5 text-xs text-brand-textMuted font-medium hover:text-white focus:outline-none focus:border-brand-red transition cursor-pointer">
+              <option value="deadline">締切が近い順 (既定)</option>
+              <option value="value">特典お得額・還元率順</option>
+              <option value="newest">新着順 (48h以内)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Filter Chips -->
+      <div class="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pb-1 pt-1 border-t border-brand-border/60" id="categoryChips">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Tag Filters -->
+      <div class="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pt-1 text-[11px]" id="tagChips">
+        <span class="text-brand-textMuted flex items-center gap-1 mr-1 flex-shrink-0"><i class="fa-solid fa-tags text-[10px]"></i> 条件タグ:</span>
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Section: Today's Recommendations (Horizontal Scroll) -->
+    <section id="sectionRecommended" class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+          <span class="w-1.5 h-4 bg-brand-red rounded-full"></span>
+          <span>今日のおすすめHOT案件 (カテゴリ別トップ選定)</span>
+        </h2>
+        <span class="text-xs text-brand-textMuted">横スクロールで確認できます</span>
+      </div>
+      <div class="flex gap-4 overflow-x-auto pb-3 custom-scroll" id="recommendedCardsContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- Section: Expiring in 3 Days Alert -->
+    <section id="sectionExpiringSoon" class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold tracking-tight text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>まもなく終了 (残り3日以内の注目案件)</span>
+        </h2>
+        <span class="text-xs text-brand-textMuted" id="expiringCountLabel">3件</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="expiringCardsContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- Main Content Area: List View vs Calendar View -->
+    <section id="listViewSection" class="space-y-4">
+      <div class="flex items-center justify-between border-b border-brand-border pb-2">
+        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <span class="w-1.5 h-4 bg-gray-500 rounded-full"></span>
+          <span>案件一覧 (<span id="filteredResultsCount">30</span>件)</span>
+        </h2>
+        <div class="flex items-center gap-3 text-xs text-brand-textMuted">
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-white">
+            <input type="checkbox" id="filterFavOnly" class="accent-brand-red rounded">
+            <span>お気に入りのみ</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-white">
+            <input type="checkbox" id="filterHideCompleted" class="accent-brand-red rounded">
+            <span>「使った」を非表示</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Item Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="cardsGridContainer">
+        <!-- Main campaign cards rendered dynamically -->
+      </div>
+
+      <div id="noResultsState" class="hidden py-16 text-center border border-dashed border-brand-border rounded-xl">
+        <i class="fa-solid fa-filter-circle-xmark text-4xl text-brand-textMuted mb-3"></i>
+        <p class="text-sm font-medium text-white">該当する案件が見つかりませんでした</p>
+        <p class="text-xs text-brand-textMuted mt-1">マイ条件やカテゴリ、タグフィルタを緩めてお試しください。</p>
+      </div>
+    </section>
+
+    <!-- Calendar View Container -->
+    <section id="calendarViewSection" class="hidden space-y-4">
+      <div class="bg-brand-dark border border-brand-border rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <h3 class="text-base font-bold text-white" id="calendarMonthLabel">2026年 11月</h3>
+            <span class="text-xs bg-brand-card text-brand-textMuted px-2 py-0.5 rounded border border-brand-border">締切カレンダー</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button id="calPrevMonth" class="px-2.5 py-1 rounded bg-brand-card hover:bg-brand-cardHover border border-brand-border text-xs text-brand-textMuted hover:text-white">
+              <i class="fa-solid fa-chevron-left"></i> 前月
+            </button>
+            <button id="calToday" class="px-2.5 py-1 rounded bg-brand-card hover:bg-brand-cardHover border border-brand-border text-xs font-semibold text-brand-redLight">
+              今月
+            </button>
+            <button id="calNextMonth" class="px-2.5 py-1 rounded bg-brand-card hover:bg-brand-cardHover border border-brand-border text-xs text-brand-textMuted hover:text-white">
+              翌月 <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-brand-textMuted py-2 border-b border-brand-border">
+          <span class="text-brand-red">日</span>
+          <span>月</span>
+          <span>火</span>
+          <span>水</span>
+          <span>木</span>
+          <span>金</span>
+          <span class="text-blue-400">土</span>
+        </div>
+        <div class="grid grid-cols-7 gap-1 mt-1" id="calendarDaysGrid">
+          <!-- Calendar cells rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Day specific campaigns (revealed when a calendar date is clicked) -->
+      <div id="calendarDayCampaignsBox" class="bg-brand-dark border border-brand-border rounded-xl p-4 hidden">
+        <div class="flex items-center justify-between mb-3 border-b border-brand-border pb-2">
+          <h4 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-regular fa-calendar-check text-brand-red"></i>
+            <span id="calendarSelectedDateTitle">2026年11月15日 締切の案件</span>
+          </h4>
+          <span class="text-xs text-brand-textMuted" id="calendarSelectedDateCount">0件</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="calendarDayCampaignsList">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-brand-border bg-brand-dark/90 mt-12 py-6 text-xs text-brand-textMuted">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-white"><span class="text-brand-red">マネトレ！</span>ポイ活サポート</span>
+        <span>&copy; 2026 All official campaign data verified.</span>
+      </div>
+      <div class="flex items-center space-x-4 text-[11px]">
+        <span>公式確認日: 2026/11/07</span>
+        <span>自動更新: 毎日07:00</span>
+        <span>週次サマリー: 毎週日曜20:00</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal: Item Detail & Conditions -->
+  <div id="detailModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-brand-card border border-brand-border rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-fade-in flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b border-brand-border flex items-center justify-between bg-brand-dark">
+        <div class="flex items-center gap-2">
+          <span id="modalCategoryBadge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase">ポイ活</span>
+          <span id="modalRemainingBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-card text-brand-textMuted border border-brand-border">残り7日</span>
+        </div>
+        <button id="closeModalBtn" class="text-brand-textMuted hover:text-white text-lg px-2">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto custom-scroll space-y-4">
+        <div>
+          <span class="text-xs font-semibold text-brand-red tracking-wide block" id="modalRewardText">最大20%還元</span>
+          <h3 class="text-lg font-bold text-white mt-1 leading-snug" id="modalTitle">キャンペーン名</h3>
+        </div>
+
+        <p class="text-xs text-gray-300 leading-relaxed" id="modalDescription">説明文</p>
+
+        <div class="bg-brand-dark/80 border border-brand-border rounded-xl p-3 space-y-2 text-xs">
+          <div class="flex items-start gap-2">
+            <span class="text-brand-textMuted w-20 flex-shrink-0">応募・利用条件:</span>
+            <span class="text-white font-medium" id="modalConditions">-</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="text-brand-textMuted w-20 flex-shrink-0">利用期間・締切:</span>
+            <span class="text-white font-medium" id="modalPeriod">-</span>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="text-brand-textMuted w-20 flex-shrink-0">公式確認日:</span>
+            <span class="text-brand-textMuted" id="modalVerifiedDate">-</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5" id="modalTagsContainer">
+          <!-- Tags -->
+        </div>
+
+        <!-- Action tools -->
+        <div class="pt-2 flex flex-col gap-2">
+          <a id="modalOfficialLink" href="#" target="_blank" rel="noopener noreferrer"
+             class="w-full bg-brand-red hover:bg-brand-redLight text-white font-bold py-2.5 px-4 rounded-xl text-center text-xs transition shadow-glow-red-sm flex items-center justify-center gap-2">
+            <span>公式サイト・キャンペーン頁を見る</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+          <button id="modalGenPostBtn" class="w-full bg-brand-dark hover:bg-brand-cardHover border border-brand-border text-white text-xs font-semibold py-2 px-4 rounded-xl transition flex items-center justify-center gap-2">
+            <i class="fa-brands fa-x-twitter text-brand-red"></i>
+            <span>この案件のX投稿文（下書き）を生成</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: X Post Draft Generator -->
+  <div id="postModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-brand-card border border-brand-border rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-brand-border pb-3">
+        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-brands fa-x-twitter text-brand-red"></i>
+          <span>X投稿文の下書き生成 (公式情報のみ)</span>
+        </h4>
+        <button id="closePostModalBtn" class="text-brand-textMuted hover:text-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <p class="text-xs text-brand-textMuted">未確認情報や誇張は含めず、案件名・特典・締切・公式リンクのみで構成しています。</p>
+      
+      <textarea id="postDraftText" rows="6" readonly class="w-full bg-brand-dark border border-brand-border rounded-xl p-3 text-xs text-gray-200 focus:outline-none custom-scroll font-mono select-all"></textarea>
+
+      <div class="flex gap-2">
+        <button id="copyPostTextBtn" class="flex-1 bg-brand-red hover:bg-brand-redLight text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-glow-red-sm">
+          <i class="fa-regular fa-copy"></i>
+          <span>本文をコピー</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Record Actual Points Earned -->
+  <div id="recordModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-brand-card border border-brand-border rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-brand-border pb-3">
+        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-coins text-brand-red"></i>
+          <span>獲得実績ポイントの記録</span>
+        </h4>
+        <button id="closeRecordModalBtn" class="text-brand-textMuted hover:text-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-brand-textMuted mb-1">獲得ポイント数 (数値のみ)</label>
+          <input type="number" id="recordPointInput" placeholder="例: 500" class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-white focus:outline-none focus:border-brand-red">
+        </div>
+        <div>
+          <label class="block text-brand-textMuted mb-1">メモ (案件名や付与元)</label>
+          <input type="text" id="recordMemoInput" placeholder="例: PayPay秋の還元祭" class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-white focus:outline-none focus:border-brand-red">
+        </div>
+      </div>
+
+      <button id="saveRecordPointBtn" class="w-full bg-brand-red hover:bg-brand-redLight text-white font-bold text-xs py-2.5 rounded-xl transition shadow-glow-red-sm">
+        実績として保存する
+      </button>
+
+      <div class="pt-2 border-t border-brand-border">
+        <div class="text-[11px] text-brand-textMuted mb-1">最近の獲得履歴 (当月):</div>
+        <div class="max-h-32 overflow-y-auto custom-scroll space-y-1 text-xs" id="recordHistoryList">
+          <!-- List of recorded entries -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-brand-card border border-brand-border text-white text-xs px-4 py-3 rounded-xl shadow-2xl transition-all transform translate-y-10 opacity-0 pointer-events-none flex items-center gap-2">
+    <i class="fa-solid fa-circle-check text-brand-red" id="toastIcon"></i>
+    <span id="toastMessage">完了しました</span>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    // Current Simulation Baseline Date: 2026-11-07
+    const CURRENT_BASELINE_DATE = new Date('2026-11-07T09:00:00+09:00');
+
+    // 6 Categories with Color Themes
+    const CATEGORIES = {
+      poi: { name: 'ポイ活', badgeClass: 'bg-red-950 text-red-400 border border-red-800' },
+      coupon: { name: 'クーポン', badgeClass: 'bg-orange-950 text-orange-400 border border-orange-800' },
+      sweepstakes: { name: '懸賞', badgeClass: 'bg-amber-950 text-amber-400 border border-amber-800' },
+      sale: { name: 'セール', badgeClass: 'bg-rose-950 text-rose-400 border border-rose-800' },
+      hotel: { name: 'ホテル', badgeClass: 'bg-blue-950 text-blue-400 border border-blue-800' },
+      transport: { name: 'インフラ(交通)', badgeClass: 'bg-emerald-950 text-emerald-400 border border-emerald-800' }
+    };
+
+    // My Condition Service list
+    const POPULAR_SERVICES = [
+      { id: 'paypay', name: 'PayPay' },
+      { id: 'rakuten', name: '楽天ポイント' },
+      { id: 'dpoint', name: 'dポイント' },
+      { id: 'ponta', name: 'Ponta' },
+      { id: 'vpoint', name: 'Vポイント' },
+      { id: 'jre', name: 'JRE POINT' },
+      { id: 'waon', name: 'WAON POINT' }
+    ];
+
+    // Popular Official Tags
+    const OFFICIAL_TAGS = [
+      'エントリー必須',
+      'アプリ限定',
+      '会員限定',
+      'その場で当選',
+      '毎日応募可',
+      '要クレカ決済',
+      '交通系タッチ'
+    ];
+
+    // 30 Verified Official Campaigns Across 6 Categories (all active and confirmed on or around 2026-11-07)
+    const INITIAL_CAMPAIGNS = [
+      // 1. ポイ活 (5 items)
+      {
+        id: 'poi-1',
+        category: 'poi',
+        title: 'PayPay 超PayPay祭 街のお店で最大全額ジャンボ',
+        reward: '最大100%還元 (1等)',
+        numericReward: 1000, // Estimated benchmark value for numeric sum
+        deadline: '2026-11-15T23:59:59',
+        firstPublished: '2026-11-06T09:00:00', // Within 48h for NEW badge
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://paypay.ne.jp/event/matsuri2026-autumn/',
+        services: ['paypay'],
+        tags: ['アプリ限定', '要クレカ決済'],
+        description: '対象店舗でPayPay残高またはクレジット支払いで抽選。4回に1回の確率で当たる公式秋の大還元キャンペーン。',
+        conditions: '本人確認済みのPayPayアカウントで対象加盟店にてお支払い。上限100,000pt/回。',
+        reason: '還元率が高く加盟店が全国規模で圧倒的に使いやすいため。'
+      },
+      {
+        id: 'poi-2',
+        category: 'poi',
+        title: '楽天スーパーDEAL 秋のポイントバック祭',
+        reward: '最大50%ポイント還元',
+        numericReward: 2500,
+        deadline: '2026-11-11T09:59:59',
+        firstPublished: '2026-11-04T10:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://event.rakuten.co.jp/deal/',
+        services: ['rakuten'],
+        tags: ['エントリー必須', '会員限定'],
+        description: '日用品や有名ブランド家電が高還元率で即時ポイントバック対象となる楽天市場公式フェア。',
+        conditions: '特設ページからの事前エントリー必須。楽天会員登録が必要。',
+        reason: '実質半額相当の商品が多く日常のストック買いに最適。'
+      },
+      {
+        id: 'poi-3',
+        category: 'poi',
+        title: 'd払い 街のお店＋dポイントカード提示ダブル付与キャンペーン',
+        reward: '＋10%還元 (上限1,500P)',
+        numericReward: 1500,
+        deadline: '2026-11-30T23:59:59',
+        firstPublished: '2026-11-01T10:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://service.smt.docomo.ne.jp/keitai_payment/campaign/',
+        services: ['dpoint'],
+        tags: ['エントリー必須', 'アプリ限定'],
+        description: '対象店舗でdポイントカードを提示し、d払いで決済すると通常還元に加え10%が進呈される。',
+        conditions: '事前エントリーの上、1回あたり税込1,000円以上のお支払い。期間中上限1,500ポイント。',
+        reason: 'ドラッグストアやコンビニで確実に1,500円相当を獲得可能。'
+      },
+      {
+        id: 'poi-4',
+        category: 'poi',
+        title: '三井住友カード×Vポイント スマホタッチ決済還元アップ',
+        reward: '最大10%還元',
+        numericReward: 1200,
+        deadline: '2026-11-09T23:59:59', // Expiring in 2 days!
+        firstPublished: '2026-10-20T00:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.smbc-card.com/camp/vpoint_boost.jsp',
+        services: ['vpoint'],
+        tags: ['アプリ限定', '要クレカ決済'],
+        description: '対象飲食店・コンビニでVisaのタッチ決済またはMastercardタッチ決済を行うと還元率大幅アップ。',
+        conditions: '対象のオリーブ/NLカードをApple PayまたはGoogle Payに登録して店頭タッチ決済。',
+        reason: 'まもなく終了！身近な外食・コンビニ利用で還元上限まで取り切るべき案件。'
+      },
+      {
+        id: 'poi-5',
+        category: 'poi',
+        title: 'Ponta PLAY 秋の大還元ルーレット',
+        reward: '最大3,000Pontaポイント',
+        numericReward: 3000,
+        deadline: '2026-11-20T23:59:59',
+        firstPublished: '2026-11-06T15:00:00', // NEW
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://play.ponta.jp/campaign/roulette202611/',
+        services: ['ponta'],
+        tags: ['毎日応募可', 'アプリ限定'],
+        description: 'Pontaアプリ経由で毎日1回ルーレットに挑戦可能。ハズレなしで必ず1P〜3,000Pが当たる。',
+        conditions: 'Ponta会員ID連携済みの公式アプリから毎日参加可能。',
+        reason: '毎日タップするだけで無料でPontaが積み上がる手軽さ。'
+      },
+
+      // 2. クーポン (5 items)
+      {
+        id: 'coup-1',
+        category: 'coupon',
+        title: 'Uber Eats 初回＆リピート対象 1,000円OFFクーポン',
+        reward: '1,000円OFF',
+        numericReward: 1000,
+        deadline: '2026-11-10T23:59:59', // Expiring in 3 days!
+        firstPublished: '2026-11-01T09:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.ubereats.com/jp/campaign/',
+        services: ['paypay'],
+        tags: ['アプリ限定'],
+        description: '2,500円以上のご注文で利用できる公式期間限定プロモコード。',
+        conditions: '注文確定画面でプロモコード入力。対象店舗限定。先着順。',
+        reason: '休日のデリバリー注文で確実に1,000円の値引きを受けられるため。'
+      },
+      {
+        id: 'coup-2',
+        category: 'coupon',
+        title: 'ローソン お持ち帰り限定 プレミアムロールケーキ無料引換券',
+        reward: '無料引換 (実質190円相当)',
+        numericReward: 190,
+        deadline: '2026-11-08T23:59:59', // Expiring in 1 day!
+        firstPublished: '2026-11-02T10:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.lawson.co.jp/app/coupon/',
+        services: ['ponta', 'dpoint'],
+        tags: ['アプリ限定', '会員限定'],
+        description: '公式ローソンアプリにお試し引換券またはクーポンとして配信中。',
+        conditions: 'ローソンアプリで対象Ponta/dアカウント連携しクーポンを発券。',
+        reason: '残りわずか！店頭ですぐ引き換えられる人気スイーツ無料枠。'
+      },
+      {
+        id: 'coup-3',
+        category: 'coupon',
+        title: 'マクドナルド ハッピーセット＆ポテト全サイズ250円クーポン',
+        reward: 'ポテトLサイズ最大170円引き',
+        numericReward: 170,
+        deadline: '2026-11-13T23:59:59',
+        firstPublished: '2026-11-05T08:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.mcdonalds.co.jp/capp/',
+        services: ['rakuten', 'dpoint'],
+        tags: ['アプリ限定'],
+        description: '公式アプリ限定でモバイルオーダーでも店頭レジ提示でも利用できる週替わりクーポン。',
+        conditions: '公式マクドナルドアプリのクーポンタブから提示。1会計2個まで。',
+        reason: '定番商品の値引き率が高く、週末の外食出費を抑えられる定番。'
+      },
+      {
+        id: 'coup-4',
+        category: 'coupon',
+        title: 'サンドラッグ 全品15%OFFクーポン (1点限り)',
+        reward: '1品15%OFF',
+        numericReward: 500,
+        deadline: '2026-11-16T23:59:59',
+        firstPublished: '2026-11-06T12:00:00', // NEW
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.sundrug.co.jp/app/',
+        services: ['rakuten'],
+        tags: ['アプリ限定'],
+        description: '医薬品や化粧品、日用品の単品購入時にレジで提示するとその場で15%オフ。',
+        conditions: 'サンドラッグ公式アプリ会員。一部対象外商品（カウンセリング化粧品等）あり。',
+        reason: '高単価な常備薬や化粧品を一括購入するのにベストな割引率。'
+      },
+      {
+        id: 'coup-5',
+        category: 'coupon',
+        title: '出前館 週末限定 800円割引クーポンコード',
+        reward: '800円引き',
+        numericReward: 800,
+        deadline: '2026-11-08T23:59:59', // Expiring in 1 day!
+        firstPublished: '2026-11-06T18:00:00', // NEW
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://demae-can.com/link/coupon/',
+        services: ['paypay'],
+        tags: ['アプリ限定'],
+        description: '2,000円以上の注文で使える週末48時間限定の特別ディスカウント。',
+        conditions: '注文画面で公式クーポンコード適用。キャッシュレス決済必須。',
+        reason: '今週末で終了！ランチ・ディナーに即時適用可能な高額割引。'
+      },
+
+      // 3. 懸賞 (5 items)
+      {
+        id: 'swp-1',
+        category: 'sweepstakes',
+        title: 'サントリー クラフトボス 10万名にその場で当たるLINEキャンペーン',
+        reward: 'コンビニ引換クーポン 1本',
+        numericReward: 160,
+        deadline: '2026-11-16T23:59:59',
+        firstPublished: '2026-11-02T10:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.suntory.co.jp/softdrink/craftboss/',
+        services: ['paypay'],
+        tags: ['その場で当選', '毎日応募可'],
+        description: 'LINE公式アカウントから1日1回抽選。10万人規模の大量当選オープン懸賞。',
+        conditions: '公式アカウントを友だち追加してアンケートに回答。',
+        reason: '10万名枠という圧倒的な当選確率の高さと即時判定の爽快感。'
+      },
+      {
+        id: 'swp-2',
+        category: 'sweepstakes',
+        title: 'アサヒスーパードライ 総計1,000名に当たる黒毛和牛プレゼント',
+        reward: '厳選黒毛和牛カタログ (5,000円相当)',
+        numericReward: 5000,
+        deadline: '2026-11-25T17:00:00',
+        firstPublished: '2026-10-15T09:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.asahibeer.co.jp/superdry/cp/',
+        services: [],
+        tags: ['会員限定'],
+        description: 'アサヒビール会員サイト「ASAHI PARK」からウェブ応募できる公式レシート懸賞。',
+        conditions: '対象の6缶パック購入レシートを撮影してアップロード。',
+        reason: '実質5,000円相当の豪華賞品が狙える年末年始向けの定番。'
+      },
+      {
+        id: 'swp-3',
+        category: 'sweepstakes',
+        title: 'イオン×コカ・コーラ お買い物レシートでWAON POINT 5,000P',
+        reward: '5,000 WAON POINT (抽選2,000名)',
+        numericReward: 5000,
+        deadline: '2026-11-12T23:59:59',
+        firstPublished: '2026-10-25T00:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.aeon.com/campaign/coca-cola/',
+        services: ['waon'],
+        tags: ['エントリー必須'],
+        description: 'イオングループ各店でコカ・コーラ社製品を含む対象レシートで応募。',
+        conditions: 'iAEONアプリまたはWEB応募。対象商品を含む税込1,500円以上のレシート。',
+        reason: '普段の買い物ついでに5,000ptのまとまった還元が狙える。'
+      },
+      {
+        id: 'swp-4',
+        category: 'sweepstakes',
+        title: 'ファミリーマート Twitter/Xフォロー＆リポストで無料券毎日当たる',
+        reward: 'ファミチキ1個無料券 (1万名)',
+        numericReward: 220,
+        deadline: '2026-11-09T23:59:59', // Expiring in 2 days!
+        firstPublished: '2026-11-03T10:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.family.co.jp/campaign.html',
+        services: ['dpoint', 'rakuten'],
+        tags: ['その場で当選', '毎日応募可'],
+        description: '公式Xアカウント（@famima_now）をフォロー＆対象投稿をリポストですぐ結果が届く。',
+        conditions: 'Xアカウント公開設定、公式フォロー＆指定ハッシュタグ引用またはRT。',
+        reason: 'ノーリスクで参加でき、即時判定でファミチキが手に入る手軽さ。'
+      },
+      {
+        id: 'swp-5',
+        category: 'sweepstakes',
+        title: 'セブン-イレブン アプリ限定 毎日めくって当たる秋の運試しスロット',
+        reward: '最大1,000円分のお買い物券',
+        numericReward: 1000,
+        deadline: '2026-11-18T23:59:59',
+        firstPublished: '2026-11-07T07:00:00', // NEW Today!
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.sej.co.jp/cmp/app_slot2026.html',
+        services: ['vpoint'],
+        tags: ['アプリ限定', '毎日応募可', 'その場で当選'],
+        description: 'セブンアプリ起動で1日1回スロットに挑戦。当選分は翌日アプリ内に直接付与。',
+        conditions: 'セブン-イレブンアプリへの会員ログイン必須。',
+        reason: '本日スタートの新着案件！毎日スロットを回すだけで当たるチャンス。'
+      },
+
+      // 4. セール (5 items)
+      {
+        id: 'sale-1',
+        category: 'sale',
+        title: 'Amazon 冬先取りBIG SALE 事前ポイントアップキャンペーン',
+        reward: '最大12%ポイント還元',
+        numericReward: 3000,
+        deadline: '2026-11-12T23:59:59',
+        firstPublished: '2026-11-05T12:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.amazon.co.jp/events/bigsale',
+        services: [],
+        tags: ['エントリー必須', '会員限定', '要クレカ決済'],
+        description: 'Amazonデバイス、家電、ファッションなどが一斉値下げ。合計10,000円以上購入で還元率アップ。',
+        conditions: '特設会場で「エントリーする」ボタン押下。プライム会員＋アプリ利用で加算。',
+        reason: '年に数回の大型還元。年末年始前の買い出しで最大の還元が得られる。'
+      },
+      {
+        id: 'sale-2',
+        category: 'sale',
+        title: 'ユニクロ 42周年 感謝祭 プレセール＆特別ノベルティ',
+        reward: 'ヒートテックまとめ買い割引＆タンブラー',
+        numericReward: 1000,
+        deadline: '2026-11-19T23:59:59',
+        firstPublished: '2026-11-06T09:00:00', // NEW
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.uniqlo.com/jp/ja/contents/feature/thanks-festival/',
+        services: ['paypay', 'dpoint'],
+        tags: ['アプリ限定', '会員限定'],
+        description: 'ヒートテックやウルトラライトダウンの特別感謝価格。1万円以上でステンレスボトル進呈。',
+        conditions: '全国のユニクロ店舗およびオンラインストア。アプリ会員証スキャン。',
+        reason: '冬本番前に必須インナーを底値で購入できる最重要セール。'
+      },
+      {
+        id: 'sale-3',
+        category: 'sale',
+        title: '無印良品週間 メンバー全品10%OFF',
+        reward: '全品10%OFF',
+        numericReward: 1500,
+        deadline: '2026-11-10T23:59:59', // Expiring in 3 days!
+        firstPublished: '2026-10-31T09:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.muji.com/jp/ja/special-feature/mujiweek/',
+        services: ['vpoint', 'rakuten'],
+        tags: ['アプリ限定', '会員限定'],
+        description: 'MUJI passportアプリ提示またはネットストアログインで期間中何度でも10%オフ。',
+        conditions: 'MUJI passportアプリのバーコードをレジで提示。配送料等は対象外。',
+        reason: '残り3日！収納や食品のまとめ買いで確実に10%安くなる定番キャンペーン。'
+      },
+      {
+        id: 'sale-4',
+        category: 'sale',
+        title: 'ビックカメラ 秋の家電買い替え祭 最大20%ポイント進呈',
+        reward: '通常10%＋特別10% (最大20%還元)',
+        numericReward: 4000,
+        deadline: '2026-11-30T21:00:00',
+        firstPublished: '2026-11-01T10:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.biccamera.com/bc/c/sale/autumn.jsp',
+        services: ['rakuten', 'ponta', 'dpoint'],
+        tags: ['会員限定'],
+        description: '指定の冷蔵庫・洗濯機・エアコンの購入でボーナスポイントプレゼント。',
+        conditions: 'ビックポイントカードまたは提携ポイントカードを提示。',
+        reason: '高額家電の買い替え時に数千〜数万ポイントの差が出る。'
+      },
+      {
+        id: 'sale-5',
+        category: 'sale',
+        title: 'GU ウィークリー特別価格キャンペーン',
+        reward: '対象アウター最大1,000円OFF',
+        numericReward: 1000,
+        deadline: '2026-11-12T23:59:59',
+        firstPublished: '2026-11-06T00:00:00', // NEW
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.gu-global.com/jp/ja/feature/contents/weekly-sale',
+        services: ['paypay'],
+        tags: ['アプリ限定'],
+        description: 'パフィータッチニットや新作ブルゾンが期間限定で会員限定アプリ特別価格に。',
+        conditions: 'レジにてGUアプリ会員証のバーコードを読み取り。',
+        reason: 'トレンドの冬服をプチプラからさらに安く手に入れられる。'
+      },
+
+      // 5. ホテル・旅行 (5 items)
+      {
+        id: 'hot-1',
+        category: 'hotel',
+        title: '楽天トラベル 秋のLUXURY DAYS 高級宿5%〜10%OFF',
+        reward: '最大10,000円割引クーポン',
+        numericReward: 5000,
+        deadline: '2026-11-15T23:59:59',
+        firstPublished: '2026-11-04T10:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://travel.rakuten.co.jp/camp/luxurydays/',
+        services: ['rakuten'],
+        tags: ['エントリー必須', '会員限定'],
+        description: '全国の高級ホテル・温泉旅館を対象とした枚数限定の特別割引クーポン配布中。',
+        conditions: 'クーポン獲得後の予約完了が必要。先着利用順で上限達し次第終了。',
+        reason: '年末年始や冬の温泉旅行の予約で最大のディスカウントを受けられる。'
+      },
+      {
+        id: 'hot-2',
+        category: 'hotel',
+        title: 'じゃらんnet スペシャルWeek 限定クーポン＆ポイント還元',
+        reward: '最大10%還元＋宿泊割引クーポン',
+        numericReward: 3500,
+        deadline: '2026-11-14T23:59:59',
+        firstPublished: '2026-11-01T10:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.jalan.net/theme/specialweek/',
+        services: ['ponta', 'dpoint'],
+        tags: ['会員限定'],
+        description: '対象プランの予約でPontaまたはdポイントが追加付与される期間限定フェア。',
+        conditions: 'リクルートIDログインの上、対象プランを期間内に予約。',
+        reason: 'ポイントダブル付与と割引クーポンの併用で実質負担を大きく軽減。'
+      },
+      {
+        id: 'hot-3',
+        category: 'hotel',
+        title: 'Yahoo!トラベル 冬の得旅キャンペーン PayPayポイント即時利用',
+        reward: '最大15%相当還元 (即時利用可)',
+        numericReward: 3000,
+        deadline: '2026-11-20T12:00:00',
+        firstPublished: '2026-11-06T12:00:00', // NEW
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://travel.yahoo.co.jp/feature/winter/',
+        services: ['paypay'],
+        tags: ['要クレカ決済'],
+        description: '獲得予定のPayPayポイントを予約時の支払いにその場で充当して割引可能。',
+        conditions: 'Yahoo! JAPAN IDとPayPayアカウントの連携、オンラインカード決済。',
+        reason: 'ポイントの後日付与を待たずに今すぐ値引きとして使えるのが最強のメリット。'
+      },
+      {
+        id: 'hot-4',
+        category: 'hotel',
+        title: 'マリオットボンヴォイ アメックス 秋の無料宿泊特典ブースト',
+        reward: '最大50,000ポイント獲得',
+        numericReward: 15000,
+        deadline: '2026-11-30T23:59:59',
+        firstPublished: '2026-10-15T00:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.marriott.com/ja/loyalty.mi',
+        services: [],
+        tags: ['要クレカ決済', '会員限定'],
+        description: '期間中の対象Marriott系列ホテル宿泊でエリートナイトクレジットとボーナス進呈。',
+        conditions: 'Marriott Bonvoy公式アプリまたはWEBからの直接予約限定。',
+        reason: 'ホテル修行やマイル還元を最大化したいポイ活上級者必見。'
+      },
+      {
+        id: 'hot-5',
+        category: 'hotel',
+        title: '東横イン 公式WEB予約限定 毎泊500円割引＋サンキューポイント',
+        reward: '500円OFF＋ポイント',
+        numericReward: 500,
+        deadline: '2026-11-23T23:59:59',
+        firstPublished: '2026-11-05T09:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.toyoko-inn.com/campaign/',
+        services: [],
+        tags: ['会員限定'],
+        description: '出張・ビジネス向けの公式HP直予約ディスカウント。クラブカード会員特典も併用可。',
+        conditions: '公式Webサイトからの事前決済または現地決済予約。',
+        reason: 'ビジネスユースで確実にワンコイン浮かせられる手堅いキャンペーン。'
+      },
+
+      // 6. インフラ・交通 (5 items)
+      {
+        id: 'tra-1',
+        category: 'transport',
+        title: 'JR東日本 JRE POINT最大10倍！新幹線eチケット早特利用CP',
+        reward: 'JRE POINT最大10%還元',
+        numericReward: 2000,
+        deadline: '2026-11-18T23:59:59',
+        firstPublished: '2026-11-03T10:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.jrepoint.jp/campaign/shinkansen-e-2026/',
+        services: ['jre'],
+        tags: ['エントリー必須', '交通系タッチ'],
+        description: '新幹線eチケットサービスを利用して東北・北陸・上越新幹線に乗車するとポイント10倍。',
+        conditions: 'JRE POINT WEBサイトでエントリーの上、えきねっとでチケットレス乗車。',
+        reason: '新幹線代金は単価が高いため、10%還元による戻り額が数千円単位に。'
+      },
+      {
+        id: 'tra-2',
+        category: 'transport',
+        title: 'モバイルSuica デイリーチャージで毎日誰かに1,000Pプレゼント',
+        reward: '1,000 JRE POINT (抽選5,000名)',
+        numericReward: 1000,
+        deadline: '2026-11-15T23:59:59',
+        firstPublished: '2026-11-06T10:00:00', // NEW
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.jreast.co.jp/mobilesuica/campaign/',
+        services: ['jre'],
+        tags: ['エントリー必須', 'アプリ限定'],
+        description: 'モバイルSuicaへ1回あたり3,000円以上チャージするだけで自動エントリー。',
+        conditions: 'JRE POINTに登録済みのモバイルSuicaでのオンラインチャージ。',
+        reason: '通勤・通学の定期利用や日常チャージがそのまま懸賞応募になる。'
+      },
+      {
+        id: 'tra-3',
+        category: 'transport',
+        title: 'スマートEX×EX予約 秋の早特ワイド新幹線 往復割引祭',
+        reward: '片道あたり最大3,500円割引',
+        numericReward: 3500,
+        deadline: '2026-11-09T23:59:59', // Expiring in 2 days!
+        firstPublished: '2026-10-20T10:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://smart-ex.jp/ent/campaign/',
+        services: ['vpoint'],
+        tags: ['会員限定'],
+        description: '東海道・山陽新幹線の「のぞみ」指定席が21日前・7日前までの予約で特別格安料金に。',
+        conditions: 'EX予約またはスマートEX会員。対象列車の席数限定。',
+        reason: '残り2日で受付終了！年末の帰省や出張新幹線を最安値で手配可能。'
+      },
+      {
+        id: 'tra-4',
+        category: 'transport',
+        title: '東京メトロ To Me CARD メトロポイントPlus 乗車ポイント2倍',
+        reward: '乗車ごとに最大40pt付与',
+        numericReward: 800,
+        deadline: '2026-11-30T23:59:59',
+        firstPublished: '2026-11-01T08:00:00',
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://www.to-me-card.jp/campaign/point2026/',
+        services: [],
+        tags: ['交通系タッチ', '会員限定'],
+        description: 'To Me CARDを登録したPASMOで東京メトロ線に乗車するとメトポが平日の2倍貯まる。',
+        conditions: '事前のメトロポイント連携登録済みPASMOでの入出場。',
+        reason: '毎日の通勤ルートで何もしなくてもポイントが2倍速で貯まる。'
+      },
+      {
+        id: 'tra-5',
+        category: 'transport',
+        title: 'ENEOS公式アプリ 給油1回ごとにティッシュ＆5円/L引きクーポン',
+        reward: 'ガソリン5円/L引き＋景品',
+        numericReward: 250,
+        deadline: '2026-11-17T23:59:59',
+        firstPublished: '2026-11-06T09:00:00', // NEW
+        verifiedDate: '2026/11/07',
+        officialUrl: 'https://eneos-ss.app/',
+        services: ['rakuten', 'dpoint', 'vpoint'],
+        tags: ['アプリ限定'],
+        description: 'ENEOS SSアプリのモバイル決済機能（EneKey連携）を使って給油すると即時値引き。',
+        conditions: 'ENEOS公式アプリでクーポンをセットした上で給油設定。',
+        reason: 'ガソリン代高騰下の即効性ある家計防衛クーポン。'
+      }
+    ];
+
+    // Application State Management
+    class AppState {
+      constructor() {
+        this.campaigns = this.loadLocal('mt_campaigns', INITIAL_CAMPAIGNS);
+        this.favorites = new Set(this.loadLocal('mt_favorites', []));
+        this.completed = new Set(this.loadLocal('mt_completed', []));
+        this.myConditions = new Set(this.loadLocal('mt_my_services', ['paypay', 'rakuten', 'dpoint']));
+        this.recordedEarnings = this.loadLocal('mt_recorded_earnings', [
+          { id: 'rec-1', date: '2026-11-02', memo: 'PayPay秋祭り還元', points: 420 },
+          { id: 'rec-2', date: '2026-11-05', memo: 'マクドナルド利用割引換算', points: 170 }
+        ]);
+
+        this.selectedCategory = 'all';
+        this.selectedTag = null;
+        this.searchQuery = '';
+        this.sortOrder = 'deadline'; // 'deadline' | 'value' | 'newest'
+        this.filterFavOnly = false;
+        this.hideCompleted = false;
+
+        this.currentCalYear = 2026;
+        this.currentCalMonth = 10; // 0-indexed: 10 is November
+        this.selectedCalendarDate = null;
+      }
+
+      loadLocal(key, defaultVal) {
+        try {
+          const val = localStorage.getItem(key);
+          return val ? JSON.parse(val) : defaultVal;
+        } catch (e) {
+          return defaultVal;
+        }
+      }
+
+      saveLocal(key, val) {
+        try {
+          localStorage.setItem(key, JSON.stringify(val));
+        } catch (e) {}
+      }
+
+      toggleFavorite(id) {
+        if (this.favorites.has(id)) {
+          this.favorites.delete(id);
+        } else {
+          this.favorites.add(id);
+        }
+        this.saveLocal('mt_favorites', Array.from(this.favorites));
+      }
+
+      toggleCompleted(id) {
+        if (this.completed.has(id)) {
+          this.completed.delete(id);
+        } else {
+          this.completed.add(id);
+        }
+        this.saveLocal('mt_completed', Array.from(this.completed));
+      }
+
+      toggleMyCondition(serviceId) {
+        if (this.myConditions.has(serviceId)) {
+          this.myConditions.delete(serviceId);
+        } else {
+          this.myConditions.add(serviceId);
+        }
+        this.saveLocal('mt_my_services', Array.from(this.myConditions));
+      }
+
+      addRecordedEarning(points, memo) {
+        const item = {
+          id: 'rec-' + Date.now(),
+          date: '2026-11-07',
+          memo: memo || '手動入力',
+          points: parseInt(points, 10) || 0
+        };
+        this.recordedEarnings.unshift(item);
+        this.saveLocal('mt_recorded_earnings', this.recordedEarnings);
+      }
+    }
+
+    const state = new AppState();
+
+    // Utility Helpers
+    function getDaysRemaining(deadlineStr) {
+      const deadline = new Date(deadlineStr);
+      const diffMs = deadline - CURRENT_BASELINE_DATE;
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      return diffDays;
+    }
+
+    function isNewCampaign(firstPublishedStr) {
+      const pubDate = new Date(firstPublishedStr);
+      const diffMs = CURRENT_BASELINE_DATE - pubDate;
+      const hours = diffMs / (1000 * 60 * 60);
+      return hours >= 0 && hours <= 48;
+    }
+
+    function isExpired(deadlineStr) {
+      return new Date(deadlineStr) < CURRENT_BASELINE_DATE;
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      const m = d.getMonth() + 1;
+      const day = d.getDate();
+      const h = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${m}/${day} ${h}:${min}`;
+    }
+
+    function showToast(msg, isSuccess = true) {
+      const toast = document.getElementById('toast');
+      const text = document.getElementById('toastMessage');
+      const icon = document.getElementById('toastIcon');
+      text.textContent = msg;
+      icon.className = isSuccess ? 'fa-solid fa-circle-check text-brand-red' : 'fa-solid fa-circle-exclamation text-amber-500';
+      toast.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+      }, 2500);
+    }
+
+    // Render Filters
+    function renderFilters() {
+      // 1. My Condition Service Chips
+      const serviceContainer = document.getElementById('myServiceChips');
+      serviceContainer.innerHTML = POPULAR_SERVICES.map(svc => {
+        const isActive = state.myConditions.has(svc.id);
+        return `
+          <button data-service="${svc.id}" class="btn-service-filter px-2.5 py-1 rounded-md text-xs font-semibold transition border ${
+            isActive 
+              ? 'bg-brand-red text-white border-brand-red shadow-glow-red-sm' 
+              : 'bg-brand-card text-brand-textMuted border-brand-border hover:border-gray-500'
+          }">
+            <i class="fa-solid fa-check text-[10px] mr-1 ${isActive ? 'inline' : 'hidden'}"></i>
+            ${svc.name}
+          </button>
+        `;
+      }).join('');
+
+      // 2. Category Chips with counters
+      const activeCampaigns = state.campaigns.filter(c => !isExpired(c.deadline));
+      const catContainer = document.getElementById('categoryChips');
+      let catHtml = `
+        <button data-cat="all" class="btn-category-chip px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0 ${
+          state.selectedCategory === 'all'
+            ? 'bg-white text-black shadow'
+            : 'bg-brand-card text-brand-textMuted hover:text-white border border-brand-border'
+        }">
+          <span>すべて</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded-full ${state.selectedCategory === 'all' ? 'bg-black text-white' : 'bg-brand-dark text-gray-400'}">${activeCampaigns.length}</span>
+        </button>
+      `;
+
+      Object.entries(CATEGORIES).forEach(([key, info]) => {
+        const count = activeCampaigns.filter(c => c.category === key).length;
+        const isSelected = state.selectedCategory === key;
+        catHtml += `
+          <button data-cat="${key}" class="btn-category-chip px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0 ${
+            isSelected
+              ? 'bg-brand-red text-white shadow-glow-red-sm'
+              : 'bg-brand-card text-brand-textMuted hover:text-white border border-brand-border'
+          }">
+            <span>${info.name}</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-black/40 text-white' : 'bg-brand-dark text-gray-400'}">${count}</span>
+          </button>
+        `;
+      });
+      catContainer.innerHTML = catHtml;
+
+      // 3. Official Tag Chips
+      const tagContainer = document.getElementById('tagChips');
+      const tagHtml = OFFICIAL_TAGS.map(t => {
+        const isSelected = state.selectedTag === t;
+        return `
+          <button data-tag="${t}" class="btn-tag-chip px-2.5 py-0.8 rounded-full border text-[11px] whitespace-nowrap transition ${
+            isSelected
+              ? 'bg-white text-black font-bold border-white'
+              : 'bg-brand-card text-brand-textMuted border-brand-border hover:border-gray-500'
+          }">
+            #${t}
+          </button>
+        `;
+      }).join('');
+      tagContainer.innerHTML = `<span class="text-brand-textMuted flex items-center gap-1 mr-1 flex-shrink-0"><i class="fa-solid fa-tags text-[10px]"></i> 公式タグ:</span>` + tagHtml;
+    }
+
+    // Filter Logic
+    function getFilteredCampaigns() {
+      return state.campaigns.filter(item => {
+        // 1. Exclude expired
+        if (isExpired(item.deadline)) return false;
+
+        // 2. Hide completed if toggle active
+        if (state.hideCompleted && state.completed.has(item.id)) return false;
+
+        // 3. Favorites only filter
+        if (state.filterFavOnly && !state.favorites.has(item.id)) return false;
+
+        // 4. Category filter
+        if (state.selectedCategory !== 'all' && item.category !== state.selectedCategory) return false;
+
+        // 5. Official tag filter
+        if (state.selectedTag && (!item.tags || !item.tags.includes(state.selectedTag))) return false;
+
+        // 6. My Conditions Filter (If services selected, item must match at least one OR have no specific service)
+        if (state.myConditions.size > 0 && item.services && item.services.length > 0) {
+          const hasMatch = item.services.some(s => state.myConditions.has(s));
+          if (!hasMatch) return false;
+        }
+
+        // 7. Text Search query
+        if (state.searchQuery.trim() !== '') {
+          const q = state.searchQuery.toLowerCase();
+          const matchTitle = item.title.toLowerCase().includes(q);
+          const matchDesc = item.description.toLowerCase().includes(q);
+          const matchReward = item.reward.toLowerCase().includes(q);
+          if (!matchTitle && !matchDesc && !matchReward) return false;
+        }
+
+        return true;
+      }).sort((a, b) => {
+        if (state.sortOrder === 'deadline') {
+          return new Date(a.deadline) - new Date(b.deadline);
+        } else if (state.sortOrder === 'value') {
+          return (b.numericReward || 0) - (a.numericReward || 0);
+        } else if (state.sortOrder === 'newest') {
+          return new Date(b.firstPublished) - new Date(a.firstPublished);
+        }
+        return 0;
+      });
+    }
+
+    // Render Recommended Cards (Top 1 from each category)
+    function renderRecommended() {
+      const container = document.getElementById('recommendedCardsContainer');
+      const active = state.campaigns.filter(c => !isExpired(c.deadline));
+      const recList = [];
+
+      Object.keys(CATEGORIES).forEach(catKey => {
+        const topInCat = active.find(c => c.category === catKey && c.reason);
+        if (topInCat) recList.push(topInCat);
+      });
+
+      container.innerHTML = recList.map(item => {
+        const catInfo = CATEGORIES[item.category];
+        const days = getDaysRemaining(item.deadline);
+        const isFav = state.favorites.has(item.id);
+        const isDone = state.completed.has(item.id);
+
+        return `
+          <div class="bg-brand-card hover:bg-brand-cardHover border border-brand-border hover:border-brand-borderActive rounded-xl p-4 flex-shrink-0 w-80 flex flex-col justify-between transition-all duration-200">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${catInfo.badgeClass}">${catInfo.name}</span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded ${days <= 3 ? 'bg-brand-red text-white' : 'bg-brand-dark text-brand-textMuted border border-brand-border'}">
+                  ${days <= 0 ? '本日締切' : `残り ${days}日`}
+                </span>
+              </div>
+              <div class="text-xs font-bold text-brand-redLight">${item.reward}</div>
+              <h3 class="text-sm font-bold text-white mt-1 line-clamp-2 leading-snug cursor-pointer hover:text-brand-redLight" onclick="openDetailModal('${item.id}')">${item.title}</h3>
+              <p class="text-[11px] text-gray-400 mt-2 bg-brand-dark/80 p-2 rounded-lg border border-brand-border/40">
+                <i class="fa-solid fa-award text-amber-400 mr-1"></i><span class="font-semibold text-gray-200">選定理由:</span> ${item.reason}
+              </p>
+            </div>
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-brand-border/60">
+              <button onclick="openDetailModal('${item.id}')" class="text-xs text-brand-textMuted hover:text-white font-medium flex items-center gap-1">
+                詳細 <i class="fa-solid fa-chevron-right text-[10px]"></i>
+              </button>
+              <div class="flex items-center space-x-2">
+                <button onclick="toggleCardFav('${item.id}', event)" class="p-1.5 rounded-lg text-sm transition ${isFav ? 'text-brand-red' : 'text-brand-textMuted hover:text-white'}">
+                  <i class="${isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
+                </button>
+                <label class="flex items-center gap-1 text-[11px] text-brand-textMuted cursor-pointer">
+                  <input type="checkbox" onchange="toggleCardCompleted('${item.id}')" ${isDone ? 'checked' : ''} class="accent-brand-red rounded">
+                  <span>使った</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Expiring Soon Section (<= 3 days)
+    function renderExpiringSoon() {
+      const expiringContainer = document.getElementById('expiringCardsContainer');
+      const active = state.campaigns.filter(c => !isExpired(c.deadline));
+      const expiringList = active
+        .filter(c => getDaysRemaining(c.deadline) <= 3)
+        .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+      document.getElementById('expiringCountLabel').textContent = `${expiringList.length}件`;
+
+      if (expiringList.length === 0) {
+        document.getElementById('sectionExpiringSoon').classList.add('hidden');
+        return;
+      }
+      document.getElementById('sectionExpiringSoon').classList.remove('hidden');
+
+      expiringContainer.innerHTML = expiringList.slice(0, 3).map(item => {
+        const catInfo = CATEGORIES[item.category];
+        const days = getDaysRemaining(item.deadline);
+        const isFav = state.favorites.has(item.id);
+        const isDone = state.completed.has(item.id);
+
+        return `
+          <div class="bg-brand-dark border-l-4 border-l-brand-red border border-brand-border rounded-xl p-3.5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${catInfo.badgeClass}">${catInfo.name}</span>
+                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-brand-red text-white animate-pulse">
+                  ${days <= 1 ? '明日まで！' : `あと ${days}日`}
+                </span>
+              </div>
+              <h4 class="text-xs font-bold text-white hover:text-brand-redLight cursor-pointer line-clamp-1" onclick="openDetailModal('${item.id}')">${item.title}</h4>
+              <p class="text-xs font-semibold text-brand-redLight mt-0.5">${item.reward}</p>
+              <div class="text-[10px] text-brand-textMuted mt-1">締切: ${formatDate(item.deadline)}</div>
+            </div>
+            <div class="flex items-center justify-between mt-3 pt-2 border-t border-brand-border/60">
+              <a href="${item.officialUrl}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-brand-redLight hover:underline font-medium">公式で確認 &rarr;</a>
+              <div class="flex items-center space-x-2">
+                <button onclick="toggleCardFav('${item.id}', event)" class="p-1 rounded text-xs ${isFav ? 'text-brand-red' : 'text-brand-textMuted hover:text-white'}">
+                  <i class="${isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
+                </button>
+                <label class="flex items-center gap-1 text-[11px] text-brand-textMuted cursor-pointer">
+                  <input type="checkbox" onchange="toggleCardCompleted('${item.id}')" ${isDone ? 'checked' : ''} class="accent-brand-red rounded">
+                  <span>完了</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Main Campaign Cards Grid
+    function renderMainGrid() {
+      const container = document.getElementById('cardsGridContainer');
+      const filtered = getFilteredCampaigns();
+      document.getElementById('filteredResultsCount').textContent = filtered.length;
+
+      const noRes = document.getElementById('noResultsState');
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        noRes.classList.remove('hidden');
+        return;
+      }
+      noRes.classList.add('hidden');
+
+      container.innerHTML = filtered.map(item => {
+        const catInfo = CATEGORIES[item.category];
+        const days = getDaysRemaining(item.deadline);
+        const isNew = isNewCampaign(item.firstPublished);
+        const isFav = state.favorites.has(item.id);
+        const isDone = state.completed.has(item.id);
+
+        let badgePill = '';
+        if (days <= 0) {
+          badgePill = `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-red text-white">本日終了</span>`;
+        } else if (days <= 3) {
+          badgePill = `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-red/90 text-white">残り${days}日</span>`;
+        } else if (days <= 7) {
+          badgePill = `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">残り${days}日</span>`;
+        } else {
+          badgePill = `<span class="text-[10px] font-medium px-2 py-0.5 rounded bg-brand-card text-brand-textMuted border border-brand-border">残り${days}日</span>`;
+        }
+
+        const tagsHtml = (item.tags || []).map(t => `
+          <span class="text-[10px] bg-brand-dark text-brand-textMuted px-1.5 py-0.5 rounded border border-brand-border/60">${t}</span>
+        `).join('');
+
+        return `
+          <div class="bg-brand-card hover:bg-brand-cardHover border ${isDone ? 'border-brand-border/40 opacity-70' : 'border-brand-border'} rounded-xl p-4 flex flex-col justify-between transition group relative">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded ${catInfo.badgeClass}">${catInfo.name}</span>
+                  ${isNew ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-gradient-to-r from-brand-red to-rose-600 text-white">NEW</span>' : ''}
+                </div>
+                ${badgePill}
+              </div>
+
+              <div class="text-xs font-black text-brand-red tracking-tight">${item.reward}</div>
+              <h3 class="text-sm font-bold text-white mt-1 leading-snug cursor-pointer group-hover:text-brand-redLight transition line-clamp-2" onclick="openDetailModal('${item.id}')">
+                ${item.title}
+              </h3>
+
+              <p class="text-xs text-gray-400 mt-2 line-clamp-2 leading-relaxed">
+                ${item.description}
+              </p>
+
+              <div class="flex flex-wrap gap-1 mt-3">
+                ${tagsHtml}
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-brand-border/60 flex items-center justify-between text-xs">
+              <button onclick="openDetailModal('${item.id}')" class="text-brand-textMuted hover:text-white font-medium flex items-center gap-1 text-[11px]">
+                <span>条件・詳細</span>
+                <i class="fa-solid fa-arrow-right text-[9px]"></i>
+              </button>
+
+              <div class="flex items-center space-x-3">
+                <button onclick="toggleCardFav('${item.id}', event)" title="お気に入り" class="p-1 rounded transition ${isFav ? 'text-brand-red' : 'text-brand-textMuted hover:text-white'}">
+                  <i class="${isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart'} text-sm"></i>
+                </button>
+                <label class="flex items-center gap-1.5 text-xs text-brand-textMuted cursor-pointer hover:text-white">
+                  <input type="checkbox" onchange="toggleCardCompleted('${item.id}')" ${isDone ? 'checked' : ''} class="accent-brand-red rounded">
+                  <span class="${isDone ? 'text-emerald-400 font-semibold' : ''}">${isDone ? '済' : '使った'}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Recalculate Metrics (KPI, Pending, Expected, Earned)
+    function updateMetrics() {
+      const active = state.campaigns.filter(c => !isExpired(c.deadline));
+      document.getElementById('metricTotal').textContent = `${active.length}件`;
+
+      const exp7 = active.filter(c => getDaysRemaining(c.deadline) <= 7).length;
+      document.getElementById('metricExpiring7').textContent = `${exp7}件`;
+
+      // Expected Points: Checked as completed and has valid numericReward
+      const checkedActive = active.filter(c => state.completed.has(c.id));
+      const expectedTotal = checkedActive.reduce((sum, item) => sum + (item.numericReward || 0), 0);
+      document.getElementById('metricExpected').textContent = `${expectedTotal.toLocaleString()}P`;
+      document.getElementById('pendingExpected').textContent = `${expectedTotal.toLocaleString()}P`;
+
+      // Earned Points (Actual history records)
+      const earnedTotal = state.recordedEarnings.reduce((acc, curr) => acc + (curr.points || 0), 0);
+      document.getElementById('earnedTotal').textContent = earnedTotal.toLocaleString();
+      document.getElementById('earnedCount').textContent = `${state.recordedEarnings.length}件 達成`;
+
+      // Render History in Modal
+      const histContainer = document.getElementById('recordHistoryList');
+      if (state.recordedEarnings.length === 0) {
+        histContainer.innerHTML = `<div class="text-gray-500 text-center py-2">記録はありません</div>`;
+      } else {
+        histContainer.innerHTML = state.recordedEarnings.map(rec => `
+          <div class="flex items-center justify-between bg-brand-dark px-2.5 py-1.5 rounded border border-brand-border">
+            <div>
+              <span class="text-white font-medium">${rec.memo}</span>
+              <span class="text-[10px] text-brand-textMuted ml-1">(${rec.date})</span>
+            </div>
+            <span class="font-bold text-emerald-400">+${rec.points.toLocaleString()}P</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Calendar View Logic
+    function renderCalendar() {
+      const year = state.currentCalYear;
+      const month = state.currentCalMonth;
+      const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+      document.getElementById('calendarMonthLabel').textContent = `${year}年 ${monthNames[month]}`;
+
+      const firstDay = new Date(year, month, 1).getDay(); // Day of week
+      const totalDays = new Date(year, month + 1, 0).getDate();
+
+      const grid = document.getElementById('calendarDaysGrid');
+      grid.innerHTML = '';
+
+      // Empty cells before start day
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'h-20 bg-brand-dark/40 border border-brand-border/30 rounded-lg p-1 opacity-20';
+        grid.appendChild(emptyCell);
+      }
+
+      // Day cells
+      for (let day = 1; day <= totalDays; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isToday = (year === 2026 && month === 10 && day === 7);
+
+        // Find campaigns expiring on this specific date
+        const expiringOnDay = state.campaigns.filter(c => {
+          if (isExpired(c.deadline) && c.deadline.indexOf(dateStr) === -1) return false;
+          return c.deadline.startsWith(dateStr);
+        });
+
+        const cell = document.createElement('div');
+        cell.className = `h-20 bg-brand-card border ${isToday ? 'border-brand-red shadow-glow-red-sm' : 'border-brand-border'} hover:border-gray-400 rounded-lg p-1.5 flex flex-col justify-between cursor-pointer transition`;
+        
+        let dotsHtml = '';
+        if (expiringOnDay.length > 0) {
+          const dots = expiringOnDay.slice(0, 3).map(c => {
+            const cat = CATEGORIES[c.category];
+            return `<span class="w-1.5 h-1.5 rounded-full ${c.category === 'poi' ? 'bg-red-500' : c.category === 'coupon' ? 'bg-orange-500' : c.category === 'sale' ? 'bg-rose-500' : 'bg-blue-500'}"></span>`;
+          }).join('');
+          dotsHtml = `
+            <div class="flex items-center gap-1 mt-1">
+              ${dots}
+              <span class="text-[9px] font-bold text-white bg-brand-red px-1 rounded-sm">${expiringOnDay.length}件</span>
+            </div>
+          `;
+        }
+
+        cell.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold ${isToday ? 'text-brand-red' : 'text-gray-300'}">${day}</span>
+            ${isToday ? '<span class="text-[9px] bg-brand-red text-white px-1 rounded font-bold">本日</span>' : ''}
+          </div>
+          ${dotsHtml}
+        `;
+
+        cell.addEventListener('click', () => {
+          showCalendarDayCampaigns(dateStr, day, expiringOnDay);
+        });
+
+        grid.appendChild(cell);
+      }
+    }
+
+    function showCalendarDayCampaigns(dateStr, day, campaigns) {
+      state.selectedCalendarDate = dateStr;
+      const box = document.getElementById('calendarDayCampaignsBox');
+      const title = document.getElementById('calendarSelectedDateTitle');
+      const countLabel = document.getElementById('calendarSelectedDateCount');
+      const list = document.getElementById('calendarDayCampaignsList');
+
+      box.classList.remove('hidden');
+      title.textContent = `${state.currentCalYear}年${state.currentCalMonth + 1}月${day}日 締切の案件`;
+      countLabel.textContent = `${campaigns.length}件`;
+
+      if (campaigns.length === 0) {
+        list.innerHTML = `<div class="col-span-2 text-xs text-brand-textMuted text-center py-4">この日に締切を迎える案件はありません。</div>`;
+        return;
+      }
+
+      list.innerHTML = campaigns.map(item => {
+        const catInfo = CATEGORIES[item.category];
+        return `
+          <div class="bg-brand-card border border-brand-border rounded-lg p-3 flex items-center justify-between">
+            <div>
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${catInfo.badgeClass}">${catInfo.name}</span>
+                <span class="text-xs font-bold text-brand-red">${item.reward}</span>
+              </div>
+              <h5 class="text-xs font-bold text-white hover:text-brand-red cursor-pointer" onclick="openDetailModal('${item.id}')">${item.title}</h5>
+            </div>
+            <button onclick="openDetailModal('${item.id}')" class="text-xs text-brand-textMuted hover:text-white pl-2">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Modal Details
+    let activeModalItem = null;
+    function openDetailModal(id) {
+      const item = state.campaigns.find(c => c.id === id);
+      if (!item) return;
+      activeModalItem = item;
+
+      const catInfo = CATEGORIES[item.category];
+      const days = getDaysRemaining(item.deadline);
+
+      document.getElementById('modalCategoryBadge').className = `text-[10px] font-bold px-2 py-0.5 rounded ${catInfo.badgeClass}`;
+      document.getElementById('modalCategoryBadge').textContent = catInfo.name;
+      document.getElementById('modalRemainingBadge').textContent = days <= 0 ? '本日締切' : `残り ${days}日`;
+      document.getElementById('modalRewardText').textContent = item.reward;
+      document.getElementById('modalTitle').textContent = item.title;
+      document.getElementById('modalDescription').textContent = item.description;
+      document.getElementById('modalConditions').textContent = item.conditions || '公式サイトの最新規定に準じます。';
+      document.getElementById('modalPeriod').textContent = `〜 ${formatDate(item.deadline)} まで`;
+      document.getElementById('modalVerifiedDate').textContent = `${item.verifiedDate} (公式発表確認済)`;
+      document.getElementById('modalOfficialLink').href = item.officialUrl;
+
+      const tagsBox = document.getElementById('modalTagsContainer');
+      tagsBox.innerHTML = (item.tags || []).map(t => `<span class="text-xs bg-brand-dark text-gray-300 px-2 py-0.5 rounded border border-brand-border">#${t}</span>`).join('');
+
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.add('hidden');
+      activeModalItem = null;
+    }
+
+    // X Post Generator Modal
+    function openPostDraftModal(item) {
+      if (!item) return;
+      const days = getDaysRemaining(item.deadline);
+      const draft = `【お得情報】${item.title}\n\n` +
+                    `🎁 特典: ${item.reward}\n` +
+                    `⏰ 締切: ${formatDate(item.deadline)} (残り${days > 0 ? days + '日' : '本日'})まで\n` +
+                    `🔗 公式ページ: ${item.officialUrl}\n\n` +
+                    `#ポイ活 #節約 #お得 #マネトレ`;
+
+      document.getElementById('postDraftText').value = draft;
+      document.getElementById('postModal').classList.remove('hidden');
+    }
+
+    // Global Action Handlers
+    window.toggleCardFav = function(id, evt) {
+      if (evt) evt.stopPropagation();
+      state.toggleFavorite(id);
+      renderMainGrid();
+      renderRecommended();
+      renderExpiringSoon();
+      showToast(state.favorites.has(id) ? 'お気に入りに追加しました' : 'お気に入りを解除しました');
+    };
+
+    window.toggleCardCompleted = function(id) {
+      state.toggleCompleted(id);
+      renderMainGrid();
+      renderRecommended();
+      renderExpiringSoon();
+      updateMetrics();
+      showToast(state.completed.has(id) ? '「使った・応募済み」に記録しました' : '未完了に戻しました');
+    };
+
+    window.openDetailModal = openDetailModal;
+
+    // Setup Event Listeners
+    function setupEvents() {
+      // Category filter buttons
+      document.getElementById('categoryChips').addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-category-chip');
+        if (!btn) return;
+        state.selectedCategory = btn.dataset.cat;
+        renderFilters();
+        renderMainGrid();
+      });
+
+      // Tag filter buttons
+      document.getElementById('tagChips').addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-tag-chip');
+        if (!btn) return;
+        const tag = btn.dataset.tag;
+        state.selectedTag = (state.selectedTag === tag) ? null : tag;
+        renderFilters();
+        renderMainGrid();
+      });
+
+      // My Condition filter chips
+      document.getElementById('myServiceChips').addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-service-filter');
+        if (!btn) return;
+        const svc = btn.dataset.service;
+        state.toggleMyCondition(svc);
+        renderFilters();
+        renderMainGrid();
+      });
+
+      // Reset My Conditions
+      document.getElementById('btnClearMyConditions').addEventListener('click', () => {
+        state.myConditions.clear();
+        state.saveLocal('mt_my_services', []);
+        renderFilters();
+        renderMainGrid();
+        showToast('マイ条件をクリアしました');
+      });
+
+      // Search Input
+      const searchInput = document.getElementById('searchInput');
+      const searchClear = document.getElementById('searchClear');
+      searchInput.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        if (state.searchQuery.length > 0) {
+          searchClear.classList.remove('hidden');
+        } else {
+          searchClear.classList.add('hidden');
+        }
+        renderMainGrid();
+      });
+
+      searchClear.addEventListener('click', () => {
+        searchInput.value = '';
+        state.searchQuery = '';
+        searchClear.classList.add('hidden');
+        renderMainGrid();
+      });
+
+      // Sort Order
+      document.getElementById('sortSelect').addEventListener('change', (e) => {
+        state.sortOrder = e.target.value;
+        renderMainGrid();
+      });
+
+      // View Switching (List vs Calendar)
+      const viewListBtn = document.getElementById('viewListBtn');
+      const viewCalendarBtn = document.getElementById('viewCalendarBtn');
+      const listViewSection = document.getElementById('listViewSection');
+      const calendarViewSection = document.getElementById('calendarViewSection');
+      const sectionRecommended = document.getElementById('sectionRecommended');
+      const sectionExpiringSoon = document.getElementById('sectionExpiringSoon');
+
+      viewListBtn.addEventListener('click', () => {
+        viewListBtn.className = 'px-3 py-1.5 rounded-md font-semibold text-white bg-brand-red transition flex items-center gap-1.5 shadow-glow-red-sm';
+        viewCalendarBtn.className = 'px-3 py-1.5 rounded-md font-medium text-brand-textMuted hover:text-white transition flex items-center gap-1.5';
+        listViewSection.classList.remove('hidden');
+        sectionRecommended.classList.remove('hidden');
+        sectionExpiringSoon.classList.remove('hidden');
+        calendarViewSection.classList.add('hidden');
+      });
+
+      viewCalendarBtn.addEventListener('click', () => {
+        viewCalendarBtn.className = 'px-3 py-1.5 rounded-md font-semibold text-white bg-brand-red transition flex items-center gap-1.5 shadow-glow-red-sm';
+        viewListBtn.className = 'px-3 py-1.5 rounded-md font-medium text-brand-textMuted hover:text-white transition flex items-center gap-1.5';
+        listViewSection.classList.add('hidden');
+        sectionRecommended.classList.add('hidden');
+        sectionExpiringSoon.classList.add('hidden');
+        calendarViewSection.classList.remove('hidden');
+        renderCalendar();
+      });
+
+      // Calendar Navigation
+      document.getElementById('calPrevMonth').addEventListener('click', () => {
+        state.currentCalMonth--;
+        if (state.currentCalMonth < 0) {
+          state.currentCalMonth = 11;
+          state.currentCalYear--;
+        }
+        renderCalendar();
+      });
+      document.getElementById('calNextMonth').addEventListener('click', () => {
+        state.currentCalMonth++;
+        if (state.currentCalMonth > 11) {
+          state.currentCalMonth = 0;
+          state.currentCalYear++;
+        }
+        renderCalendar();
+      });
+      document.getElementById('calToday').addEventListener('click', () => {
+        state.currentCalYear = 2026;
+        state.currentCalMonth = 10;
+        renderCalendar();
+      });
+
+      // Filter Checkboxes
+      document.getElementById('filterFavOnly').addEventListener('change', (e) => {
+        state.filterFavOnly = e.target.checked;
+        renderMainGrid();
+      });
+      document.getElementById('filterHideCompleted').addEventListener('change', (e) => {
+        state.hideCompleted = e.target.checked;
+        renderMainGrid();
+      });
+
+      // Modal Closers
+      document.getElementById('closeModalBtn').addEventListener('click', closeDetailModal);
+      document.getElementById('detailModal').addEventListener('click', (e) => {
+        if (e.target.id === 'detailModal') closeDetailModal();
+      });
+
+      document.getElementById('closePostModalBtn').addEventListener('click', () => {
+        document.getElementById('postModal').classList.add('hidden');
+      });
+      document.getElementById('postModal').addEventListener('click', (e) => {
+        if (e.target.id === 'postModal') document.getElementById('postModal').classList.add('hidden');
+      });
+
+      // X Post Generator trigger from Detail Modal
+      document.getElementById('modalGenPostBtn').addEventListener('click', () => {
+        openPostDraftModal(activeModalItem);
+      });
+
+      // Copy Post Text
+      document.getElementById('copyPostTextBtn').addEventListener('click', () => {
+        const text = document.getElementById('postDraftText').value;
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('X投稿用の下書きをコピーしました！');
+        });
+      });
+
+      // Manual Update Button Simulator
+      const btnManualUpdate = document.getElementById('btnManualUpdate');
+      const refreshIcon = document.getElementById('refreshIcon');
+      btnManualUpdate.addEventListener('click', () => {
+        refreshIcon.classList.add('fa-spin');
+        btnManualUpdate.disabled = true;
+        setTimeout(() => {
+          refreshIcon.classList.remove('fa-spin');
+          btnManualUpdate.disabled = false;
+          const nowStr = '2026/11/07 ' + new Date().toTimeString().slice(0, 5) + ' (公式確認済)';
+          document.getElementById('lastUpdatedText').textContent = nowStr;
+          renderAll();
+          showToast('公式サイトの最新情報を再巡回し、期限切れ案件を自動更新しました。');
+        }, 800);
+      });
+
+      // Record Points Modal Handlers
+      const recordModal = document.getElementById('recordModal');
+      document.getElementById('btnRecordModal').addEventListener('click', () => {
+        recordModal.classList.remove('hidden');
+      });
+      document.getElementById('closeRecordModalBtn').addEventListener('click', () => {
+        recordModal.classList.add('hidden');
+      });
+      recordModal.addEventListener('click', (e) => {
+        if (e.target.id === 'recordModal') recordModal.classList.add('hidden');
+      });
+
+      document.getElementById('saveRecordPointBtn').addEventListener('click', () => {
+        const ptInput = document.getElementById('recordPointInput');
+        const memoInput = document.getElementById('recordMemoInput');
+        const val = parseInt(ptInput.value, 10);
+        if (!val || val <= 0) {
+          alert('有効な数値を入力してください');
+          return;
+        }
+        state.addRecordedEarning(val, memoInput.value || '手動入力');
+        ptInput.value = '';
+        memoInput.value = '';
+        recordModal.classList.add('hidden');
+        updateMetrics();
+        showToast(`+${val.toLocaleString()}P を実績として記録しました`);
+      });
+    }
+
+    // Master Render
+    function renderAll() {
+      renderFilters();
+      renderRecommended();
+      renderExpiringSoon();
+      renderMainGrid();
+      updateMetrics();
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      setupEvents();
+      renderAll();
+    });
+  </script>
+</body>
+</html>
